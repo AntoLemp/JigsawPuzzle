@@ -4,7 +4,7 @@
 This project automatically reconstructs scrambled jigsaw puzzles from square image tiles. The pieces are randomly shuffled and rotated. The algorithm pieces them back together without any prior knowledge of the original image, using a combination of **Classical Computer Vision** (Color histograms, Sobel gradients) and **Deep Learning** (ResNet-18 embeddings).
 
 ## Installation
-Ensure you have Python 3.8+ installed. Install the required dependencies using the provided `requirements.txt`:
+Ensure you have Python 3.11+ installed. Install the required dependencies using the provided `requirements.txt`:
 
 ```bash
 pip install -r requirements.txt
