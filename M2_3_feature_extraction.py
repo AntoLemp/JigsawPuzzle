@@ -6,6 +6,10 @@ from torchvision.models import ResNet18_Weights
 
 class FeatureExtractor:
     def __init__(self, wb=8):
+        """
+        Initializes the FeatureExtractor with a specified border width for extracting strips.
+        :param wb: The border width for extracting strips.
+        """
         self.wb = wb
         self.device = torch.device(
             "cuda" if torch.cuda.is_available() else "cpu"
@@ -32,7 +36,11 @@ class FeatureExtractor:
         self.preprocess = weights.transforms()
 
     def get_border_strips(self, tile):
-
+        """
+        Extracts the border strips from a given tile.
+        :param tile: The input tile.
+        :return: A dictionary containing the border strips.
+        """
         h, w, _ = tile.shape
         strips = {
             'top': tile[0:self.wb, :],
@@ -43,6 +51,12 @@ class FeatureExtractor:
         return strips
 
     def compute_color_histogram(self, strip, bins=8):
+        """
+        Computes a normalized color histogram for a given strip.
+        :param strip: The input strip.
+        :param bins: The number of bins for the histogram.
+        :return: The normalized color histogram.
+        """
         hist = []
         for i in range(3):  # For each RGB channel
             channel_hist = cv2.calcHist([strip], [i], None, [bins], [0, 256])
@@ -55,9 +69,10 @@ class FeatureExtractor:
     def compute_deep_features(self, strip):
         """
         Extract a 512-dimensional ResNet18 descriptor.
-
         Convert the OpenCV NumPy array to a PIL Image and pass it
         through the preprocessing pipeline before feeding it to the CNN.
+        :param strip: The input strip.
+        :return: The 512-dimensional feature vector.
         """
         from PIL import Image
 
@@ -78,6 +93,8 @@ class FeatureExtractor:
     def compute_texture_features(self, strip):
         """
         Computes texture statistics using Sobel filters to capture edges.
+        :param strip: The input strip.
+        :return: The texture feature vector.
         """
         gray = cv2.cvtColor(strip, cv2.COLOR_BGR2GRAY)
 

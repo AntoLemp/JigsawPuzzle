@@ -3,15 +3,23 @@ import numpy as np
 from scipy.spatial.distance import cosine
 
 def cnn_boundary_score(feat_a, feat_b):
+    """
+    Compute a similarity score between two CNN feature vectors using cosine distance.
+    :param feat_a: The first CNN feature vector.
+    :param feat_b: The second CNN feature vector.
+    :return: The similarity score.
+    """
     dist = cosine(feat_a, feat_b)
     return float(np.exp(-dist / 0.5))
 
 def rotate_piece(image, angle, target_height=None, target_width=None):
     """
-    Rotate a piece and optionally resize it to a common shape.
-
-    This is useful when original tiles are rectangular because 90-degree
-    rotations swap height and width.
+    Rotate an image by a specified angle and optionally resize it to target dimensions.
+    :param image: The image to rotate.
+    :param angle: The angle by which to rotate the image.
+    :param target_height: The target height for the resized image.
+    :param target_width: The target width for the resized image.
+    :return: The rotated and optionally resized image.
     """
     angle = angle % 360
 
@@ -44,6 +52,12 @@ def rotate_piece(image, angle, target_height=None, target_width=None):
 
 
 def _validate_tiles(tile_a, tile_b):
+    """
+    Validate that both tiles are valid images with three color channels.
+    :param tile_a: The first tile.
+    :param tile_b: The second tile.
+    :return: None.
+    """
     if tile_a is None or tile_b is None:
         raise ValueError("Both tiles must be valid images.")
 
@@ -55,7 +69,14 @@ def _validate_tiles(tile_a, tile_b):
 
 
 def boundary_cost(tile_a, tile_b, direction, border_width=4):
-    """Compute direct Lab color mismatch across a shared boundary by cropping first."""
+    """
+    Compute the average Lab color difference along the shared boundary of two tiles.
+    :param tile_a: The first tile.
+    :param tile_b: The second tile.
+    :param direction: The direction of the boundary ("horizontal" or "vertical").
+    :param border_width: The width of the boundary strip to consider.
+    :return: The average Lab color difference.
+    """
     _validate_tiles(tile_a, tile_b)
 
     if direction == "horizontal":
@@ -81,9 +102,12 @@ def boundary_cost(tile_a, tile_b, direction, border_width=4):
 
 def boundary_score(tile_a, tile_b, direction, border_width=4):
     """
-    Convert Lab boundary cost into a score in approximately (0, 1].
-
-    Higher values are better.
+    Convert boundary cost into a score in approximately (0, 1].
+    :param tile_a: The first tile.
+    :param tile_b: The second tile.
+    :param direction: The direction of the boundary ("horizontal" or "vertical").
+    :param border_width: The width of the boundary strip to consider.
+    :return: The boundary score.
     """
     cost = boundary_cost(
         tile_a,
@@ -96,7 +120,14 @@ def boundary_score(tile_a, tile_b, direction, border_width=4):
 
 
 def gradient_boundary_cost(tile_a, tile_b, direction, border_width=4):
-    """Compare Sobel responses near the shared boundary by cropping first."""
+    """
+    Compute the gradient boundary cost between two tiles using Sobel filters.
+    :param tile_a: The first tile.
+    :param tile_b: The second tile.
+    :param direction: The direction of the boundary ("horizontal" or "vertical").
+    :param border_width: The width of the boundary strip to consider.
+    :return: The gradient boundary cost.
+    """
     _validate_tiles(tile_a, tile_b)
     pad = border_width + 2
 
@@ -127,7 +158,12 @@ def gradient_boundary_cost(tile_a, tile_b, direction, border_width=4):
 
 def gradient_boundary_score(tile_a, tile_b, direction, border_width=4):
     """
-    Convert gradient cost into a score in approximately (0, 1].
+    Convert gradient boundary cost into a score in approximately (0, 1].
+    :param tile_a: The first tile.
+    :param tile_b: The second tile.
+    :param direction: The direction of the boundary ("horizontal" or "vertical").
+    :param border_width: The width of the boundary strip to consider.
+    :return: The gradient boundary score.
     """
     cost = gradient_boundary_cost(
         tile_a,
@@ -142,10 +178,17 @@ def gradient_boundary_score(tile_a, tile_b, direction, border_width=4):
 def boundary_compatibility(tile_a, tile_b, direction, feat_a, feat_b,
                            global_a, global_b, weights):
     """
-        Combined direct boundary score.
-
-        Higher values are better.
-        """
+    Compute a combined boundary compatibility score between two tiles using color, texture, and CNN features.
+    :param tile_a: The first tile.
+    :param tile_b: The second tile.
+    :param direction: The direction of the boundary ("horizontal" or "vertical").
+    :param feat_a: The features for the first tile.
+    :param feat_b: The features for the second tile.
+    :param global_a: The global features for the first tile.
+    :param global_b: The global features for the second tile.
+    :param weights: The weights for combining the different feature types.
+    :return: The combined boundary compatibility score.
+    """
     color_side = boundary_score(tile_a, tile_b, direction)
     texture_side = gradient_boundary_score(tile_a, tile_b, direction)
     cnn_side = cnn_boundary_score(feat_a['cnn'], feat_b['cnn'])

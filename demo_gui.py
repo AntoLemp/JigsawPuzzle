@@ -10,6 +10,12 @@ from M6_evaluation import Evaluator
 
 
 def rotate_cv2_image(image, angle):
+    """
+    Rotates an OpenCV image by the specified angle (0, 90, 180, 270 degrees).
+    :param image: The input image.
+    :param angle: The rotation angle.
+    :return: The rotated image.
+    """
     if angle == 90:
         return cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
     elif angle == 180:
@@ -20,7 +26,18 @@ def rotate_cv2_image(image, angle):
 
 
 def render_grid_image(P, Q, pieces, grid, gt_pos=None, gt_rot=None, highlight=False):
-    """Renders the grid into a single BGR image array with optional error highlighting."""
+    """
+    Renders the puzzle pieces on a grid based on their positions and orientations.
+    :param P: The number of rows.
+    :param Q: The number of columns.
+    :param pieces: The list of puzzle pieces.
+    :param grid: The grid layout mapping positions to piece indices and orientations.
+    :param gt_pos: The ground truth positions.
+    :param gt_rot: The ground truth rotations.
+    :param highlight: Whether to highlight errors.
+    :return: The rendered grid image.
+    """
+
     if not pieces:
         return np.zeros((400, 400, 3), dtype=np.uint8)
 
@@ -51,13 +68,21 @@ def render_grid_image(P, Q, pieces, grid, gt_pos=None, gt_rot=None, highlight=Fa
 
 
 def convert_to_bytes(cv2_image, target_size=(600, 600)):
-    """Converts a cv2 image to PNG bytes for PySimpleGUI."""
+    """
+    Converts an OpenCV image to bytes for display in PySimpleGUI.
+    :param cv2_image: The input OpenCV image.
+    :param target_size: The target size for the resized image.
+    :return: The image bytes.
+    """
     resized = cv2.resize(cv2_image, target_size, interpolation=cv2.INTER_AREA)
     _, buffer = cv2.imencode('.png', resized)
     return buffer.tobytes()
 
 
 def main_gui():
+    """
+    Main function to run the GUI for the jigsaw puzzle reconstruction demo.
+    """
     sg.theme('DarkBlue3')
 
     images = ["dog.jpg", "ocean.jpg", "acropolis.jpg"]

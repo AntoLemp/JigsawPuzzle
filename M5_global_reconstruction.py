@@ -9,6 +9,15 @@ from M4_adjacency_measures import (
 
 class Reconstructor:
     def __init__(self, P, Q, pieces, piece_features, weights, border_width=4):
+        """
+        Initializes the Reconstructor with the grid dimensions and piece information.
+        :param P: The number of rows in the grid.
+        :param Q: The number of columns in the grid.
+        :param pieces: A list of piece images.
+        :param piece_features: A dictionary of features for each piece.
+        :param weights: Weights for the different feature types.
+        :param border_width: The width of the border for each tile.
+        """
         self.P = P
         self.Q = Q
         self.pieces = pieces
@@ -21,6 +30,10 @@ class Reconstructor:
         self._precompute_scores()
 
     def _precompute_scores(self):
+        """
+        Precompute the boundary compatibility scores for all pairs of pieces, orientations, and directions.
+        This allows for instant retrieval of scores during reconstruction.
+        """
         orientations = [0, 90, 180, 270]
         directions = ["horizontal", "vertical"]
 
@@ -63,6 +76,12 @@ class Reconstructor:
                             self.score_cache[(p_a, o_a, p_b, o_b, d)] = score
 
     def _get_rotated_piece(self, piece_idx, orientation):
+        """
+        Rotate a piece to the specified orientation.
+        :param piece_idx: The index of the piece to rotate.
+        :param orientation: The orientation to rotate the piece to.
+        :return: The rotated piece.
+        """
         return rotate_piece(
             self.pieces[piece_idx],
             orientation,
@@ -73,6 +92,12 @@ class Reconstructor:
     def _pair_score(self, piece_a, orientation_a, piece_b, orientation_b, direction):
         """
         Retrieve the precomputed score instantly.
+        :param piece_a: The index of the first piece.
+        :param orientation_a: The orientation of the first piece.
+        :param piece_b: The index of the second piece.
+        :param orientation_b: The orientation of the second piece.
+        :param direction: The direction of the boundary.
+        :return: The precomputed score.
         """
         if piece_a == piece_b:
             return -np.inf
@@ -81,9 +106,9 @@ class Reconstructor:
 
     def greedy_reconstruction(self):
         """
-        Build a fixed P x Q grid in row-major order.
-
-        This is a baseline, not a globally optimal solver.
+        Greedily reconstruct the puzzle by placing pieces one at a time,
+        starting from a seed piece and orientation, and always choosing the best next piece based on the precomputed scores.
+        :return: The reconstructed grid.
         """
         N = self.P * self.Q
         unassigned = set(range(N))
@@ -143,8 +168,9 @@ class Reconstructor:
 
     def _realign_grid(self, grid):
         """
-        Shifts the reconstructed grid so that the top-left-most piece
-        is at (0, 0), aligning it with the absolute ground-truth coordinate system.
+        Realign the grid so that the top-left piece is at (0, 0).
+        :param grid: The grid to realign.
+        :return: The realigned grid.
         """
         if not grid:
             return grid
@@ -161,6 +187,11 @@ class Reconstructor:
         return aligned_grid
 
     def _get_open_neighbors(self, grid):
+        """
+        Get all open spots adjacent to the current grid.
+        :param grid: The current grid.
+        :return: A set of open spots adjacent to the grid.
+        """
         open_spots = set()
         for (r, c) in grid.keys():
             neighbors = [(r - 1, c), (r + 1, c), (r, c - 1), (r, c + 1)]
@@ -172,6 +203,14 @@ class Reconstructor:
         return open_spots
 
     def _get_active_feature(self, piece_idx, orientation, facing_side, feature_type):
+        """
+        Get the feature for a piece at a given orientation and facing side.
+        :param piece_idx: The index of the piece.
+        :param orientation: The orientation of the piece.
+        :param facing_side: The side of the piece that is facing outward.
+        :param feature_type: The type of feature to retrieve.
+        :return: The feature for the specified piece and orientation.
+        """
         mapping = {
             0: {'top': 'top', 'right': 'right', 'bottom': 'bottom', 'left': 'left'},
             90: {'top': 'left', 'right': 'top', 'bottom': 'right', 'left': 'bottom'},
@@ -189,7 +228,12 @@ class Reconstructor:
             grid
     ):
         """
-        Evaluate a candidate placement using direct pixel compatibility.
+        Evaluate the score of placing a piece at a given spot in the grid.
+        :param spot: The spot where the piece is to be placed.
+        :param piece_idx: The index of the piece to place.
+        :param orientation: The orientation of the piece.
+        :param grid: The current grid.
+        :return: The score for the placement.
         """
         score = 0.0
         r, c = spot
@@ -246,8 +290,10 @@ class Reconstructor:
 
     def _is_valid_spot(self, spot, grid):
         """
-        Ensures that placing a piece at 'spot' does not cause the
-        reconstructed grid to exceed the strict P x Q dimensions.
+        Check if placing a piece at the given spot would keep the grid within the P x Q bounds.
+        :param spot: The spot where the piece is to be placed.
+        :param grid: The current grid.
+        :return: True if the spot is valid, False otherwise.
         """
         if not grid:
             return True
@@ -269,9 +315,9 @@ class Reconstructor:
 
     def _calculate_total_score(self, grid):
         """
-        Calculate the global adjacency goal.
-
-        Each horizontal and vertical adjacency is counted once.
+        Calculate the total score of the current grid configuration.
+        :param grid: The current grid configuration.
+        :return: The total score.
         """
         total_score = 0.0
 
@@ -307,7 +353,10 @@ class Reconstructor:
 
     def optimize_grid(self, grid, iterations=5000):
         """
-        Simulated annealing over piece swaps and orientations.
+        Optimize the grid configuration using simulated annealing.
+        :param grid: The initial grid configuration.
+        :param iterations: The number of iterations for simulated annealing.
+        :return: The optimized grid configuration.
         """
         current_grid = dict(grid)
         current_score = self._calculate_total_score(current_grid)
@@ -369,6 +418,12 @@ class Reconstructor:
         return best_grid
 
     def align_global_orientation(self, reconstructed_grid, evaluator):
+        """
+        Align the global orientation of the reconstructed grid to maximize placement accuracy.
+        :param reconstructed_grid: The reconstructed grid.
+        :param evaluator: The evaluator to use for scoring.
+        :return: The grid with aligned global orientation.
+        """
         best_grid = reconstructed_grid
         best_metrics = evaluator.evaluate(reconstructed_grid)
 

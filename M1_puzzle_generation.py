@@ -3,13 +3,22 @@ import random
 
 class PuzzleGeneration:
     def __init__(self, P, Q):
-
+        """
+        Initializes the PuzzleGeneration with the specified number of rows (P) and columns (Q).
+        :param P: The number of rows.
+        :param Q: The number of columns.
+        """
         self.P = P
         self.Q = Q
         self.ground_truth_positions = {}
         self.ground_truth_rotations = {}
 
     def generate_puzzle(self, image_path):
+        """
+        Generates a puzzle by dividing the image into P x Q pieces, shuffling them, and applying random rotations.
+        :param image_path: The path to the input image.
+        :return: The generated puzzle pieces and their dimensions.
+        """
         image = cv2.imread(image_path)
         H, W, _ = image.shape
 

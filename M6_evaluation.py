@@ -1,5 +1,12 @@
 class Evaluator:
     def __init__(self, ground_truth_pos, ground_truth_rot, P, Q):
+        """
+        Initializes the Evaluator with ground truth positions and rotations.
+        :param ground_truth_pos: A list of tuples representing the ground truth positions of each piece.
+        :param ground_truth_rot: A list of integers representing the ground truth rotations of each piece.
+        :param P: The number of rows in the grid.
+        :param Q: The number of columns in the grid.
+        """
         self.gt_pos = ground_truth_pos
         self.gt_rot = ground_truth_rot
         self.P = P
@@ -7,6 +14,12 @@ class Evaluator:
         self.N = P * Q
 
     def are_true_neighbors(self, piece_a, piece_b):
+        """
+        Determines if two pieces are true neighbors in the ground truth grid.
+        :param piece_a: Index of the first piece.
+        :param piece_b: Index of the second piece.
+        :return: True if the pieces are true neighbors, False otherwise.
+        """
         row_a, col_a = self.gt_pos[piece_a]
         row_b, col_b = self.gt_pos[piece_b]
 
@@ -18,7 +31,9 @@ class Evaluator:
 
     def evaluate(self, reconstructed_grid):
         """
-        Computes quantitative metrics.
+        Evaluates the reconstructed grid against the ground truth.
+        :param reconstructed_grid: A dictionary mapping positions to (piece_index, rotation) tuples.
+        :return: A dictionary containing placement and rotation accuracy metrics.
         """
         correct_placements = 0
         correct_rotations = 0
@@ -43,7 +58,9 @@ class Evaluator:
 
     def evaluate_neighbor_accuracy(self, reconstructed_grid):
         """
-        Calculates the fraction of true neighboring pairs recovered.
+        Evaluates the neighbor accuracy of the reconstructed grid.
+        :param reconstructed_grid: A dictionary mapping positions to (piece_index, rotation) tuples.
+        :return: The fraction of true neighboring pairs recovered.
         """
         reconstructed_pairs = set()
 
